@@ -57,7 +57,6 @@ def get_coment(url):
         print(url, '电影名称:%s\n文章标题:%s\n评论内容:%s\n' % (name, title, content), sep='\n')
     except Exception:
         wrong_link_list.append(url)
-        raise
 
 
 # 主事件循环
