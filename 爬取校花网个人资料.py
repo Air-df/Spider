@@ -51,12 +51,13 @@ def download(url, path, file_name):
 def main():
     url = r'http://www.xiaohuar.com/2014.html'
     url_list = get_url(url)
-
+    # 存储路径
+    file_path = r'G:\爬虫--图片\校花网\\'
     for i in url_list:
         file_name = i.contents[0]
         url = i.get('href')
-        os.makedirs(r'G:\爬虫--图片\校花网\\' + file_name, exist_ok=True)
-        path = r'G:\爬虫--图片\校花网\\' + file_name
+        os.makedirs(file_path + file_name, exist_ok=True)
+        path = file_path + file_name
         print('开始下载', file_name, path)
         sem = threading.Semaphore(80)
         time.sleep(random.uniform(0.5, 2))
