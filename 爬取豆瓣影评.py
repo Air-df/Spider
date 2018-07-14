@@ -14,7 +14,6 @@ header_str = """Accept:text/html,application/xhtml+xml,application/xml;q=0.9,ima
 Accept-Language:zh-CN,zh;q=0.9
 Cache-Control:max-age=0
 Connection:keep-alive
-Cookie:bid=zUnnS0B0U9g; __utma=30149280.816511805.1531056340.1531056340.1531056340.1; __utmc=30149280; __utmz=30149280.1531056340.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); regpop=1; ll="108303"; dbcl2="58779916:xR1xY1FkYOg"; _ga=GA1.2.816511805.1531056340; _gid=GA1.2.1650676679.1531057970; ck=JfsN; push_noty_num=0; push_doumail_num=0; __utmv=30149280.5877; __utmt=1; __utmb=30149280.13.9.1531058600473; _pk_ref.100001.4cf6=%5B%22%22%2C%22%22%2C1531058604%2C%22https%3A%2F%2Fwww.douban.com%2F%22%5D; _pk_ses.100001.4cf6=*; __utma=223695111.816511805.1531056340.1531058604.1531058604.1; __utmb=223695111.0.10.1531058604; __utmc=223695111; __utmz=223695111.1531058604.1.1.utmcsr=douban.com|utmccn=(referral)|utmcmd=referral|utmcct=/; _pk_id.100001.4cf6=2148c6bfad0f7599.1531058604.1.1531058611.1531058604.
 Host:movie.douban.com
 Referer:https://movie.douban.com/
 Upgrade-Insecure-Requests:1"""
