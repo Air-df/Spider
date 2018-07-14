@@ -9,7 +9,6 @@ from bs4 import BeautifulSoup
 本文件用于爬取豆瓣最受欢迎影评
     目标网址： https://movie.douban.com/review/best/
 """
-
 header_str = """Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
 Accept-Language:zh-CN,zh;q=0.9
 Cache-Control:max-age=0
