@@ -1,14 +1,17 @@
 import time
+import random
 import threading
 
-from faker import Factory
 import requests
+import pymongo
+from faker import Factory
 from bs4 import BeautifulSoup
 
 """
 本文件用于爬取豆瓣最受欢迎影评
     目标网址： https://movie.douban.com/review/best/
 """
+
 header_str = """Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
 Accept-Language:zh-CN,zh;q=0.9
 Cache-Control:max-age=0
@@ -20,21 +23,21 @@ Upgrade-Insecure-Requests:1"""
 UA = Factory().create().user_agent()
 headers = {x.split(':', 1)[0]: x.split(':', 1)[1] for x in header_str.split('\n')}
 headers['User-Agent'] = UA
-# cookies = {
-#     'cookie': """bid=zUnnS0B0U9g; _pk_ses.100001.8cb4=*; __yadk_uid=8LC6kAjG8bOXxJakLewkeX6SyeImnQ3y;
-#     __utma=30149280.816511805.1531056340.1531056340.1531056340.1; __utmc=30149280;
-#     __utmz=30149280.1531056340.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); regpop=1; ll="108303"; __utmt=1;
-#     dbcl2="58779916:xR1xY1FkYOg"; _ga=GA1.2.816511805.1531056340; _gid=GA1.2.1650676679.1531057970;
-#     _gat_UA-7019765-1=1; ck=JfsN; _pk_id.100001.8cb4=ee0e339e85c6b828.1531056332.1.1531057974.1531056332.;
-#     push_noty_num=0; push_doumail_num=0; __utmv=30149280.5877; __utmb=30149280.7.9.1531057979861"""}
 
 # 存放不规则页面网址
+WRONG_LINK_LIST = []
 
-wrong_link_list = []
+# 创建连接到MongoDB
+HOST = 'localhost'
+PORT = 27017
+CONN = pymongo.MongoClient(HOST, PORT)
+DB = CONN['spider']
+COLLECTION_NAME = 'doubanmovie'
+COLLECTION = DB[COLLECTION_NAME]
+
 
 # 获取每页链接
 def get_url(ur):
-    global headers, cookies
     response = requests.get(ur, headers=headers)
     soup = BeautifulSoup(response.text, 'lxml')
     links = soup.select(r'div.main-bd > h2 > a')
@@ -44,7 +47,7 @@ def get_url(ur):
 
 # 获取影评内容
 def get_coment(url):
-    global header, wrong_link_list
+    time.sleep(random.uniform(0.5, 3))
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, 'lxml')
 
@@ -53,15 +56,22 @@ def get_coment(url):
 
     try:
         content = ''.join([x.contents[0] for x in soup.select('p')[2::]])
-        print(url, '电影名称:%s\n文章标题:%s\n评论内容:%s\n' % (name, title, content), sep='\n')
-    except Exception:
-        wrong_link_list.append(url)
+        # 查看数据库中是否已存在
+        isexists = COLLECTION.find({'name': name}, {'_id': 0}).count()
+        if not isexists:
+            dct = {
+                'name': name,
+                'title': title,
+                'content': content
+            }
+            COLLECTION.insert(dct)
+    except Exception as e:
+        WRONG_LINK_LIST.append(url)
 
 
 # 主事件循环
 def main():
     a = time.time()
-    print('开始。。。')
     link_list = []
     for i in range(5):
         url = 'https://movie.douban.com/review/best/?start=' + str(20 * i)
@@ -82,11 +92,10 @@ def main():
     for i in th_list:
         i.join()
     b = time.time()
-    print('结束.....')
-    print('用时：', b - a)
+    CONN.close()
 
 
 if __name__ == '__main__':
     main()
-    for i in wrong_link_list:
+    for i in WRONG_LINK_LIST:
         print('出错网址:', i)
