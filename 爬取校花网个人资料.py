@@ -34,7 +34,6 @@ def download(url, path, file_name):
     info = soup.select('div.content_wrap > p > span')
     imgs = soup.select('div.content_wrap > p > img')
     words = ''
-    srcs = []
     for i in info:
         words += i.contents[0] + '\n'
     print(words)
@@ -44,7 +43,6 @@ def download(url, path, file_name):
 
     for i in range(len(imgs)):
         src = r'http://www.xiaohuar.com' + imgs[i].get('src')
-        srcs.append(src)
         urlretrieve(src, path + '\\' + str(i) + '.jpg')
 
 
