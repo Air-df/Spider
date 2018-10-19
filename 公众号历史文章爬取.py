@@ -7,7 +7,8 @@ import pymysql
 
 
 """
-抓取速度过快  账号会被限制
+抓取速度过快  账号会被限
+需更新cookie信息
 """
 
 headers = """Host: mp.weixin.qq.com
@@ -59,7 +60,7 @@ def get_proxy():
 
 def get_link(url):
     global num
-    response = requests.get(url, headers=headers, proxies=get_proxy(), verify=False)
+    response = requests.get(url, headers=headers, proxies=get_proxy()[-1], verify=False)
     if response.status_code != 200:
         return False
     html = response.text
