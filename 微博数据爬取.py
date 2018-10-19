@@ -53,7 +53,7 @@ START_DICT = {lst[x]: lst[x+1] for x in range(len(lst)) if x % 2 == 0}
 COUNT = 0
 
 
-# 从数据库中随机抽取十个代理
+# 从数据库中随机抽取代理
 def get_proxies():
     conn = pymysql.connect(**MYSQL)
     cursor = conn.cursor()
