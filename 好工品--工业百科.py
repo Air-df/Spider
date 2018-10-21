@@ -1,11 +1,10 @@
-import re
 import time
 import random
+import threading
 import traceback
 
 import requests
 import pymysql
-import pymongo
 from bs4 import BeautifulSoup
 from faker import Factory
 
@@ -17,6 +16,11 @@ headers = {
     'User-Agent': Factory().create().user_agent(),
     'Referrer': 'https://www.51hgp.com/Standard'
 }
+file = open('好工品--资料.xls', 'a')
+# 文件线程锁--避免多线程同时写入，造成冲突
+lock = threading.Lock()
+# 最大线程数量
+sem = threading.Semaphore(20)
 
 
 def get_proxies():
@@ -58,9 +62,10 @@ def get_links(url):
 
     for item in soup.select('ul.catalogueResultList > li'):
         detail_url = base_url + item.get('data-lead-standardid')
-        print(detail_url)
+        # print(detail_url)
         # 生成表头
         table_head = get_table_head_from(detail_url)
+        file.write(table_head)
         get_detail_from(detail_url)
 
 
@@ -74,22 +79,24 @@ def get_table_head_from(url):
     for head in soup.select('thead.product-list-head th')[:-1:]:
         content = head.contents[0]
         table_head.append(content)
+    table_head = '\t'.join(table_head) + '\n'
     # print(table_head)
     return table_head
 
 
 def get_detail_from(url):
-    base = 'https://www.51hgp.com'      # 用于生成下一页链接
+    base = 'https://www.51hgp.com'  # 用于生成下一页链接
     res = requests.get(url, headers=headers, proxies=get_proxy())
     html = res.text
     soup = BeautifulSoup(html, 'lxml')
     get_info(soup)
     next_page = soup.select('div#page a')[-2].get('href')
 
-    # if 'Standard' in next_page:
-    #     next_page_url = base + next_page
-    #     print(next_page_url)
-    #     get_detail_from(next_page_url)
+    if 'Standard' in next_page:
+        next_page_url = base + next_page
+        print(next_page_url)
+        # time.sleep(random.randrange(3, 5))
+        get_detail_from(next_page_url)
 
 
 def get_info(soup):
@@ -107,20 +114,43 @@ def get_info(soup):
     material = table[3].select('td')[1].select('div.overflow-box > a')[0].contents[0]
     # 表面处理
     surface_treatment = table[4].select('td')[1].select('div.overflow-box > a')[0].contents[0]
-    print(standard, big_catogery, small_catogery, diameter, texture, intention, material, surface_treatment, sep='\n')
+    items = soup.select('div.container div.product-tab tbody > tr')
 
+    for item in items:
+        info = item.select('td')[:-3:]
+        info_list = []
+        info_list.extend([standard, big_catogery, small_catogery, diameter, texture, intention, material, surface_treatment])
+        for i in range(len(info)):
+            if i == 1:
+                # 规格参数隐藏在td下的a标签内
+                detail = ''.join(info[i].select('a')[0].contents[0].split())
+            else:
+                detail = ''.join(info[i].contents)
+            info_list.append(detail)
+        data = '\t'.join(info_list) + '\n'
+        with lock:
+            file.write(data)
+        print(info_list)
 
 
 def main():
+    th_list = []
     for i in range(1, 553):
         url = 'https://www.51hgp.com/Standard?page={}#good-style'.format(i)
-        get_links(url)
+        th = threading.Thread(target=get_links, args=(url,))
+        th_list.append(th)
+    for th in th_list:
+        with sem:
+            th.start()
+    for th in th_list:
+        th.join()
 
 
 if __name__ == '__main__':
     # get_links(start_url)
     # 详情页测试链接
-    test_url = 'https://www.51hgp.com/Standard/Specifications/614'
+    # test_url = 'https://www.51hgp.com/Standard/Specifications/649'
+    # test_url = 'https://www.51hgp.com/Standard/Specifications/61596'
     # get_detail_from(test_url)
     # get_table_head_from('https://www.51hgp.com/Standard/Specifications/30914')
     main()
